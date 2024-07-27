@@ -30,7 +30,7 @@ jobs:
           --build-arg PYTHON_VERSION=${{ matrix.python-version }} \
           --build-arg SPARK_VERSION=${{ matrix.spark-version }} \
           --build-arg DELTA_VERSION=${{ matrix.delta-version }} \
-          -t dtb:py${{ matrix.python-version }}-spark${{ matrix.spark-version }} .
+          -t dtb:py${{ matrix.python-version }}-spark${{ matrix.spark-version }}-delta${{ matrix.delta-version }} .
 
     - name: Push Docker image to DockerHub
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -39,5 +39,5 @@ jobs:
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       run: |
         echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-        docker tag dtb:py${{ matrix.python-version }}-spark${{ matrix.spark-version }} $DOCKER_USERNAME/dtb:py${{ matrix.python-version }}-spark${{ matrix.spark-version }}
-        docker push $DOCKER_USERNAME/dtb:py${{ matrix.python-version }}-spark${{ matrix.spark-version }}
+        docker tag dtb:py${{ matrix.python-version }}-spark${{ matrix.spark-version }}-delta${{ matrix.delta-version }} $DOCKER_USERNAME/dtb:py${{ matrix.python-version }}-spark${{ matrix.spark-version }}-delta${{ matrix.delta-version }}
+        docker push $DOCKER_USERNAME/dtb:py${{ matrix.python-version }}-spark${{ matrix.spark-version }}-delta${{ matrix.delta-version }}
