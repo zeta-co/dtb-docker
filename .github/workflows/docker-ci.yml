@@ -1,0 +1,43 @@
+name: Docker CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.9.19, 3.10.14, 3.11.9]
+        spark-version: [3.3.4, 3.4.3, 3.5.1]
+        include:
+          - spark-version: 3.3.4
+            delta-version: 2.3.0
+          - spark-version: 3.4.3
+            delta-version: 2.4.0
+          - spark-version: 3.5.1
+            delta-version: 3.2.0
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Build Docker image
+      run: |
+        docker build \
+          --build-arg PYTHON_VERSION=${{ matrix.python-version }} \
+          --build-arg SPARK_VERSION=${{ matrix.spark-version }} \
+          --build-arg DELTA_VERSION=${{ matrix.delta-version }} \
+          -t dtb:py${{ matrix.python-version }}-spark${{ matrix.spark-version }}-delta${{ matrix.delta-version }} .
+
+    - name: Push Docker image to DockerHub
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      env:
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      run: |
+        echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+        docker tag dtb:py${{ matrix.python-version }}-spark${{ matrix.spark-version }}-delta${{ matrix.delta-version }} $DOCKER_USERNAME/dtb:py${{ matrix.python-version }}-spark${{ matrix.spark-version }}-delta${{ matrix.delta-version }}
+        docker push $DOCKER_USERNAME/dtb:py${{ matrix.python-version }}-spark${{ matrix.spark-version }}-delta${{ matrix.delta-version }}
